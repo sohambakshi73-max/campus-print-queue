@@ -1,0 +1,54 @@
+import pytest
+import app as application
+
+
+@pytest.fixture
+def client(tmp_path):
+    test_db = tmp_path / "test_print_queue.db"
+    application.DB_NAME = str(test_db)
+    application.app.config["TESTING"] = True
+    application.init_db()
+
+    with application.app.test_client() as client:
+        yield client
+
+
+def test_health_check(client):
+    res = client.get("/health")
+    assert res.status_code == 200
+    assert res.get_json()["status"] == "ok"
+
+
+def test_submit_print_job_and_api(client):
+    res = client.post(
+        "/submit",
+        data={"doc_name": "Report.pdf", "student_name": "Soham", "pages": "5"},
+        follow_redirects=True,
+    )
+    assert res.status_code == 200
+
+    api_res = client.get("/api/jobs")
+    data = api_res.get_json()
+    assert len(data) == 1
+    assert data[0]["doc_name"] == "Report.pdf"
+    assert data[0]["status"] == "Queued"
+
+
+def test_submit_validation_rejection(client):
+    res = client.post(
+        "/submit",
+        data={"doc_name": "Lab.pdf", "student_name": "Soham", "pages": "-2"},
+    )
+    assert res.status_code == 400
+
+
+def test_mark_job_ready(client):
+    client.post(
+        "/submit",
+        data={"doc_name": "Notes.pdf", "student_name": "Soham", "pages": "10"},
+    )
+    res = client.post("/ready/1", follow_redirects=True)
+    assert res.status_code == 200
+
+    api_res = client.get("/api/jobs")
+    assert api_res.get_json()[0]["status"] == "Ready for Pickup"

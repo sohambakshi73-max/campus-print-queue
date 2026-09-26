@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Campus Print Queue</title>
+  <style>
+    body { font-family: sans-serif; max-width: 800px; margin: 40px auto; padding: 0 20px; line-height: 1.5; }
+    h1 { border-bottom: 2px solid #3182ce; padding-bottom: 10px; color: #2b6cb0; }
+    form { background: #f0f4f8; padding: 16px; border-radius: 8px; margin-bottom: 24px; }
+    input { padding: 8px; margin-right: 8px; border: 1px solid #ccc; border-radius: 4px; }
+    button { padding: 8px 16px; background: #3182ce; color: white; border: none; border-radius: 4px; cursor: pointer; }
+    table { width: 100%; border-collapse: collapse; margin-top: 15px; }
+    th, td { border: 1px solid #ddd; padding: 10px; text-align: left; }
+    th { background-color: #f7fafc; }
+    .status-Queued { color: #d69e2e; font-weight: bold; }
+    .status-Ready { color: #38a169; font-weight: bold; }
+    footer { margin-top: 40px; font-size: 0.85em; color: #718096; border-top: 1px solid #eee; padding-top: 10px; }
+  </style>
+</head>
+<body>
+  <h1>Campus Print Queue & Pickup Tracker</h1>
+
+  <form method="POST" action="/submit">
+    <h3>Send Document to Print</h3>
+    <input type="text" name="doc_name" placeholder="Document Name (e.g. Lab.pdf)" required>
+    <input type="text" name="student_name" placeholder="Student Name" required>
+    <input type="number" name="pages" placeholder="Pages" min="1" required>
+    <button type="submit">Submit to Queue</button>
+  </form>
+
+  <h3>Live Print Queue</h3>
+  <table>
+    <thead>
+      <tr>
+        <th>Job ID</th>
+        <th>Document</th>
+        <th>Student</th>
+        <th>Pages</th>
+        <th>Status</th>
+        <th>Action</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for job in jobs %}
+      <tr>
+        <td>#{{ job.id }}</td>
+        <td>{{ job.doc_name }}</td>
+        <td>{{ job.student_name }}</td>
+        <td>{{ job.pages }}</td>
+        <td class="status-{{ 'Ready' if 'Ready' in job.status else 'Queued' }}">{{ job.status }}</td>
+        <td>
+          {% if job.status == 'Queued' %}
+          <form method="POST" action="/ready/{{ job.id }}" style="margin:0;">
+            <button type="submit" style="background:#38a169;">Mark Ready</button>
+          </form>
+          {% else %}
+            Ready
+          {% endif %}
+        </td>
+      </tr>
+      {% else %}
+      <tr>
+        <td colspan="6" style="text-align: center; color: #888;">No documents in the printing queue.</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+
+  <footer>commit {{ commit }}</footer>
+</body>
+</html>
