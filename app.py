@@ -79,6 +79,16 @@ def mark_ready(job_id):
     return redirect("/")
 
 
+@app.route("/clear-ready", methods=["POST"])
+def clear_ready_jobs():
+    """Remove print jobs marked as 'Ready for Pickup' to maintain queue hygiene."""
+    conn = get_db_connection()
+    conn.execute("DELETE FROM print_jobs WHERE status = 'Ready for Pickup'")
+    conn.commit()
+    conn.close()
+    return redirect("/")
+
+
 @app.route("/api/jobs")
 def api_jobs():
     """Expose all print queue jobs in JSON format."""

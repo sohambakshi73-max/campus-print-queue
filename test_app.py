@@ -68,3 +68,16 @@ def test_mark_job_ready(client):
 
     api_res = client.get("/api/jobs")
     assert api_res.get_json()[0]["status"] == "Ready for Pickup"
+
+
+def test_clear_ready_jobs(client):
+    client.post(
+        "/submit",
+        data={"doc_name": "ClearTest.pdf", "student_name": "Soham", "pages": "2"},
+    )
+    client.post("/ready/1", follow_redirects=True)
+    res = client.post("/clear-ready", follow_redirects=True)
+    assert res.status_code == 200
+
+    api_res = client.get("/api/jobs")
+    assert len(api_res.get_json()) == 0
