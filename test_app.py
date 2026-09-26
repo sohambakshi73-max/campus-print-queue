@@ -50,6 +50,14 @@ def test_empty_student_name_rejected(client):
     assert res.status_code == 400
 
 
+def test_zero_pages_rejected(client):
+    res = client.post(
+        "/submit",
+        data={"doc_name": "Project.pdf", "student_name": "Soham", "pages": "0"},
+    )
+    assert res.status_code == 400
+
+
 def test_mark_job_ready(client):
     client.post(
         "/submit",
