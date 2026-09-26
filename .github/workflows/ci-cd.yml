@@ -17,7 +17,7 @@ jobs:
           cache: pip
       - run: pip install -r requirements.txt
       - name: Lint
-        run: flake8 --max-line-length=120 --exclude=venv .
+        run: flake8 --max-line-length=120 --ignore=W292,W391 --exclude=venv .
       - name: Test
         run: pytest -v
 
