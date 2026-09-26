@@ -81,3 +81,15 @@ def test_clear_ready_jobs(client):
 
     api_res = client.get("/api/jobs")
     assert len(api_res.get_json()) == 0
+
+
+def test_api_stats(client):
+    client.post(
+        "/submit",
+        data={"doc_name": "StatsDoc.pdf", "student_name": "Soham", "pages": "12"},
+    )
+    res = client.get("/api/stats")
+    assert res.status_code == 200
+    data = res.get_json()
+    assert data["total_jobs"] == 1
+    assert data["total_pages"] == 12
