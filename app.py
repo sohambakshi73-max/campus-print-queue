@@ -8,12 +8,14 @@ COMMIT = os.getenv("RENDER_GIT_COMMIT", "local")[:7]
 
 
 def get_db_connection():
+    """Create and return a SQLite database connection with Row factory."""
     conn = sqlite3.connect(DB_NAME)
     conn.row_factory = sqlite3.Row
     return conn
 
 
 def init_db():
+    """Initialize the print_jobs database table if it does not exist."""
     conn = get_db_connection()
     conn.execute(
         """
@@ -36,6 +38,7 @@ init_db()
 
 @app.route("/")
 def index():
+    """Fetch all submitted print jobs and render the queue dashboard."""
     conn = get_db_connection()
     jobs = conn.execute("SELECT * FROM print_jobs ORDER BY id DESC").fetchall()
     conn.close()
@@ -44,6 +47,7 @@ def index():
 
 @app.route("/submit", methods=["POST"])
 def submit_job():
+    """Validate print request inputs and insert a new print job into the queue."""
     doc_name = request.form.get("doc_name", "").strip()
     student_name = request.form.get("student_name", "").strip()
     pages_raw = request.form.get("pages", "").strip()
@@ -67,6 +71,7 @@ def submit_job():
 
 @app.route("/ready/<int:job_id>", methods=["POST"])
 def mark_ready(job_id):
+    """Update a specific job's status to indicate it is ready for pickup."""
     conn = get_db_connection()
     conn.execute("UPDATE print_jobs SET status = 'Ready for Pickup' WHERE id = ?", (job_id,))
     conn.commit()
@@ -76,6 +81,7 @@ def mark_ready(job_id):
 
 @app.route("/api/jobs")
 def api_jobs():
+    """Expose all print queue jobs in JSON format."""
     conn = get_db_connection()
     jobs = conn.execute("SELECT * FROM print_jobs").fetchall()
     conn.close()
@@ -84,6 +90,7 @@ def api_jobs():
 
 @app.route("/health")
 def health():
+    """Health check endpoint returning system status and deployment commit SHA."""
     return {"status": "ok", "commit": COMMIT}
 
 
