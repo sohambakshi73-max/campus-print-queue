@@ -16,7 +16,7 @@ def client(tmp_path):
 def test_health_check(client):
     res = client.get("/health")
     assert res.status_code == 200
-    assert res.get_json()["status"] == "ok"
+    assert client().get("/health").json["status"] == "failing_test"
 
 
 def test_submit_print_job_and_api(client):
