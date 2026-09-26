@@ -98,6 +98,16 @@ def api_jobs():
     return jsonify([dict(j) for j in jobs])
 
 
+@app.route("/api/stats")
+def api_stats():
+    """Return summary statistics of active and ready print jobs."""
+    conn = get_db_connection()
+    total_jobs = conn.execute("SELECT COUNT(*) FROM print_jobs").fetchone()[0]
+    total_pages = conn.execute("SELECT COALESCE(SUM(pages), 0) FROM print_jobs").fetchone()[0]
+    conn.close()
+    return jsonify({"total_jobs": total_jobs, "total_pages": total_pages})
+
+
 @app.route("/health")
 def health():
     """Health check endpoint returning system status and deployment commit SHA."""
